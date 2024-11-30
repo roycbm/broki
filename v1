@@ -1,0 +1,131 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broki - Aprende Inglés</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white font-roboto">
+    <div class="container mx-auto p-4">
+        <div class="bg-gray-800 shadow-md rounded-lg overflow-hidden">
+            <div class="bg-red-600 text-white p-4">
+                <h1 class="text-2xl font-bold">Broki - Aprende Inglés</h1>
+            </div>
+            <div class="p-4">
+                <div id="chat-window" class="h-96 overflow-y-scroll border border-gray-700 p-2 mb-4 bg-gray-700">
+                    <!-- Conversaciones -->
+                    <div class="mb-2">
+                        <div class="text-gray-300">
+                            <strong>Usuario:</strong> Hola, ¿cómo estás?
+                        </div>
+                        <div class="text-gray-300">
+                            <strong>Broki:</strong> ¡Hola! Estoy bien, gracias. ¿Y tú?
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-gray-300">
+                            <strong>Usuario:</strong> Quiero aprender inglés.
+                        </div>
+                        <div class="text-gray-300">
+                            <strong>Broki:</strong> ¡Genial! ¿En qué nivel estás actualmente?
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-gray-300">
+                            <strong>Usuario:</strong> Soy principiante.
+                        </div>
+                        <div class="text-gray-300">
+                            <strong>Broki:</strong> Perfecto, empecemos con lo básico. ¿Cómo se dice "hola" en inglés?
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center">
+                    <button id="voice-button" class="bg-red-500 text-white p-2 rounded-full">
+                        <i id="voice-icon" class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'es-ES';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.recognizing = false;
+
+        const voiceButton = document.getElementById('voice-button');
+        const voiceIcon = document.getElementById('voice-icon');
+
+        voiceButton.addEventListener('click', () => {
+            if (recognition.recognizing) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        recognition.addEventListener('start', () => {
+            voiceButton.classList.remove('bg-red-500');
+            voiceButton.classList.add('bg-blue-500');
+            voiceIcon.classList.remove('fa-microphone');
+            voiceIcon.classList.add('fa-microphone-slash');
+            recognition.recognizing = true;
+        });
+
+        recognition.addEventListener('end', () => {
+            voiceButton.classList.remove('bg-blue-500');
+            voiceButton.classList.add('bg-red-500');
+            voiceIcon.classList.remove('fa-microphone-slash');
+            voiceIcon.classList.add('fa-microphone');
+            recognition.recognizing = false;
+        });
+
+        recognition.addEventListener('result', (event) => {
+            const userInput = event.results[0][0].transcript;
+            const chatWindow = document.getElementById('chat-window');
+            const userMessage = document.createElement('div');
+            userMessage.classList.add('mb-2');
+            userMessage.innerHTML = `<div class="text-gray-300"><strong>Usuario:</strong> ${userInput}</div>`;
+            chatWindow.appendChild(userMessage);
+
+            // Aquí iría la llamada a la API de ChatGPT para obtener la respuesta
+            const brokiResponse = 'Esta es una respuesta simulada de Broki.';
+
+            const brokiMessage = document.createElement('div');
+            brokiMessage.classList.add('mb-2');
+            brokiMessage.innerHTML = `<div class="text-gray-300"><strong>Broki:</strong> ${brokiResponse}</div>`;
+            chatWindow.appendChild(brokiMessage);
+
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Convertir la respuesta de Broki a voz con voz masculina
+            const utterance = new SpeechSynthesisUtterance(brokiResponse);
+            utterance.lang = 'es-ES';
+            const voices = window.speechSynthesis.getVoices();
+            const maleVoice = voices.find(voice => voice.name.includes('Google español') && voice.name.includes('male'));
+            if (maleVoice) {
+                utterance.voice = maleVoice;
+            }
+            window.speechSynthesis.speak(utterance);
+        });
+
+        recognition.addEventListener('speechend', () => {
+            recognition.stop();
+        });
+
+        recognition.addEventListener('error', (event) => {
+            console.error('Speech recognition error detected: ' + event.error);
+        });
+
+        // Cargar las voces disponibles
+        window.speechSynthesis.onvoiceschanged = () => {
+            const voices = window.speechSynthesis.getVoices();
+            console.log(voices);
+        };
+    </script>
+</body>
+</html>
